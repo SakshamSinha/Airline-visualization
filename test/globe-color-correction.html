@@ -1,0 +1,167 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Airline Routes Visualization</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <div id="main"></div>
+        <script src="../node_modules/echarts/dist/echarts.js"></script>
+        <script src="../node_modules/echarts-gl/dist/echarts-gl.js"></script>
+        <script src="lib/jquery.min.js"></script>
+        <script src="lib/dat.gui.js"></script>
+        <script>
+            var chart = echarts.init(document.getElementById('main'));
+            $.getJSON('./data/result.json', function (data) {
+                var airports = data.airports;
+
+                var routesbyairline = {};
+                data.routes.forEach(function (route) {
+                    var airline_id = route.airline_id;
+
+                    if (!routesbyairline[airline_id]) {
+                        routesbyairline[airline_id] = [];
+                    }
+                    routesbyairline[airline_id].push([route, airports[route.source].coord, airports[route.destination].coord]);
+                });
+
+
+                var pointsData = [];
+
+                jQuery.each(airports, function() {
+                    pointsData.push(this.coord);
+                });
+
+                var series = Object.keys(data.airlines).map(function(key, index) {
+                    var routes = routesbyairline[data.airlines[key].id];
+                    if (!routes) {
+                        return null;
+                    }
+                    return {
+                        type: 'lines3D',
+                        name: data.airlines[key].name,
+
+                        effect: {
+                            show: true,
+                            trailWidth: 2,
+                            trailLength: 0.2,
+                            trailOpacity: 0.4,
+                            trailColor: 'rgb(30, 30, 60)'
+                        },
+
+                        lineStyle: {
+                            width: 1,
+                            color: 'rgb(50, 50, 150)',
+                            // color: 'rgb(118, 233, 241)',
+                            opacity: 0.1
+                        },
+                        blendMode: 'lighter',
+
+                        distanceToGlobe: 4,
+
+                        data:routes.map(function (route) {
+                            return [route[1], route[2]];
+                        })
+                    };
+                }, {}).filter(function (series) {
+                        return !!series;
+                    });
+
+                series.push({
+                    type: 'scatter3D',
+                    coordinateSystem: 'globe',
+                    blendMode: 'lighter',
+                    symbolSize: 2,
+                    distanceToGlobe: 4,
+                    itemStyle: {
+                        color: 'rgb(50, 50, 150)',
+                        opacity: 0.2
+                    },
+                    data: pointsData
+                });
+            // http://visibleearth.nasa.gov/view_cat.php?categoryID=1484
+            chart.setOption({
+                legend: {
+                    selectedMode: 'multiple',
+                    left: 'left',
+                    data: series.map(function(airline){
+                        return airline.name;
+                    }),
+                    orient: 'vertical',
+                    textStyle: {
+                        color: '#fff'
+                    },
+                    type: 'scroll',
+                },
+                globe: {
+
+                    baseTexture: 'asset/world.topo.bathy.200401.jpg',
+                    heightTexture: 'asset/elev_bump_4k.jpg',
+
+                    displacementScale: 0.1,
+
+                    shading: 'realistic',
+                    realisticMaterial: {
+                        roughness: 0.8,
+                        metalness: 0
+                    },
+
+                    postEffect: {
+                        enable: true,
+                        colorCorrection: {
+                            // lookupTexture: 'asset/crispwarm.png'
+                        }
+                    },
+                    temporalSuperSampling: {
+                        enable: true
+                    },
+                    light: {
+                        ambient: {
+                            intensity: 1
+                        },
+                        main: {
+                            intensity: 6,
+                            shadow: false,
+                        },
+                    }
+                },
+                series: series
+            });
+            window.addEventListener('resize', function () {
+                chart.resize();
+            });
+
+            var config = {
+                exposure: 0,
+                brightness: 0,
+                contrast: 1,
+                saturation: 1
+            };
+            var gui = new dat.GUI();
+
+            function update() {
+                chart.setOption({
+                    globe: {
+                        postEffect: {
+                            colorCorrection: {
+                                brightness: config.brightness,
+                                exposure: config.exposure,
+                                contrast: config.contrast,
+                                saturation: config.saturation
+                            }
+                        }
+                    }
+                })
+            }
+
+            gui.add(config, 'exposure', -2, 2).step(0.01).onChange(update);
+            gui.add(config, 'brightness', -1, 1).step(0.01).onChange(update);
+            gui.add(config, 'contrast', -2, 2).step(0.01).onChange(update);
+            gui.add(config, 'saturation', -10, 10).step(0.01).onChange(update);
+            })
+        </script>
+    </body>
+</html>
