@@ -1,9 +1,9 @@
 (function () {
     var btn = document.createElement('button');
-    btn.innerHTML = 'DISPOSE';
+    btn.innerHTML = 'Un-Check All';
     btn.style.cssText = `
         position:absolute;
-        left: 10px;
+        left: 20px;
         top: 10px;
         background: rgb(42, 64, 173);
         color: #fff;
@@ -14,8 +14,12 @@
     `;
 
     btn.onclick = function () {
-        (typeof myChart !== 'undefined') && myChart.dispose();
-        (typeof chart !== 'undefined') && chart.dispose();
+        for(i=0; i < chart.series.length; i++) {
+            if(chart.series[i].selected == true){
+                chart.series[i].select();
+                showSeries.call(chart.series[i], {checked: false});
+            }
+        }
     }
 
     document.body.appendChild(btn);

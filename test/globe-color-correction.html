@@ -15,6 +15,7 @@
         <script src="lib/dat.gui.js"></script>
         <script>
             var chart = echarts.init(document.getElementById('main'));
+            chart.showLoading();
             $.getJSON('./data/result.json', function (data) {
                 var airports = data.airports;
 
@@ -35,11 +36,15 @@
                     pointsData.push(this.coord);
                 });
 
+                var selected_dict={};
+
+
                 var series = Object.keys(data.airlines).map(function(key, index) {
                     var routes = routesbyairline[data.airlines[key].id];
                     if (!routes) {
                         return null;
                     }
+                    selected_dict[data.airlines[key].name]=true;
                     return {
                         type: 'lines3D',
                         name: data.airlines[key].name,
@@ -83,9 +88,11 @@
                     data: pointsData
                 });
             // http://visibleearth.nasa.gov/view_cat.php?categoryID=1484
-            chart.setOption({
+            var option= {
                 legend: {
+                    name: 'airlines',
                     selectedMode: 'multiple',
+                    selected: selected_dict,
                     left: 'left',
                     data: series.map(function(airline){
                         return airline.name;
@@ -95,6 +102,9 @@
                         color: '#fff'
                     },
                     type: 'scroll',
+                    pageTextStyle: {
+                        color: '#fff'
+                    }
                 },
                 globe: {
 
@@ -129,10 +139,12 @@
                     }
                 },
                 series: series
-            });
+            };
+            chart.setOption(option);
             window.addEventListener('resize', function () {
                 chart.resize();
             });
+
 
             var config = {
                 exposure: 0,
@@ -161,6 +173,55 @@
             gui.add(config, 'brightness', -1, 1).step(0.01).onChange(update);
             gui.add(config, 'contrast', -2, 2).step(0.01).onChange(update);
             gui.add(config, 'saturation', -10, 10).step(0.01).onChange(update);
+
+                chart.hideLoading();
+
+            (function () {
+                var btn = document.createElement('button');
+                btn.innerHTML = 'Un-Check All';
+                btn.style.cssText = `
+                    position:absolute;
+                    left: 130px;
+                    top: 10px;
+                    background: rgb(42, 64, 173);
+                    color: #fff;
+                    border: none;
+                    padding: 5px 10px;
+                    z-index: 1000000;
+                    cursor: pointer;`;
+
+                btn.onclick = function () {
+                    Object.keys(selected_dict).map(function(key, index){
+                        selected_dict[key]=false;
+                    });
+                    chart.setOption(option,true);
+                    console.log("clicked uncheck")
+                };
+
+                var btn_reset = document.createElement('button');
+                btn_reset.innerHTML = 'Reset';
+                btn_reset.style.cssText = `
+                    position:absolute;
+                    left: 230px;
+                    top: 10px;
+                    background: rgb(42, 64, 173);
+                    color: #fff;
+                    border: none;
+                    padding: 5px 10px;
+                    z-index: 1000000;
+                    cursor: pointer;`;
+
+                btn_reset.onclick = function () {
+                    Object.keys(selected_dict).map(function(key, index){
+                        selected_dict[key]=true;
+                    });
+                    chart.setOption(option,true);
+                    console.log("clicked reset");
+                };
+
+                document.body.appendChild(btn);
+                document.body.appendChild(btn_reset);
+            })();
             })
         </script>
     </body>
