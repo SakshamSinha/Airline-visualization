@@ -5,6 +5,10 @@ body {
     background: url(asset/bg.jpg);
     background-size: 100% 100%;
     margin: 0;
+    display:-webkit-box;
+    display:-webkit-flex;
+    display:-ms-flexbox;
+    display:flex;
 }
 #main {
     position: absolute;
@@ -19,4 +23,26 @@ body {
     top: 10px;
     left: 10px;
     z-index: 1000;
+}
+
+svg{
+    margin: auto;
+    position: absolute;
+    bottom: 5px;
+    right: 7px;
+}
+#button{
+    cursor: pointer;
+}
+.graphe_container{
+    -moz-transform-origin: 160px 160px;
+    -ms-transform-origin:  160px 160px;
+    -o-transform-origin: 160px 160px;
+    -webkit-transform-origin:  160px 160px;
+    transform-origin: 160px 160px;
+}
+rect,circle{
+    user-select: none;
+    -webkit-user-select:none;
+    -moz-user-select:none;
 }
