@@ -447,6 +447,15 @@
             Object.keys(selected_dict).map(function(key, index){
                 selected_dict[key]=true;
             });
+            series.forEach(function (data){
+                data.lineStyle = {
+                    width: 1,
+                    // color: 'rgb('+100+', '+120+', 150)',
+                    color: 'rgb(80, 50, 150)',
+                    // color: 'rgb(118, 233, 241)',
+                    opacity: 0.1
+                }
+            });
             chart.setOption(option,true);
             console.log("clicked reset");
         };
