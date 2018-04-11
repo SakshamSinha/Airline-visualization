@@ -406,8 +406,6 @@
 
     chart.hideLoading();
 
-
-
     (function () {
         var btn = document.createElement('button');
         btn.innerHTML = 'Un-Check All';
@@ -603,29 +601,6 @@
 
             d3.select(el).transition().duration('200').attr('fill',color);
         }
-        function drawGrapheText(x,y,id=null,value,s_color){
-            var graphe = d3.select('svg').append('g').attr('id','text_graphe');
-
-            graphe.append('text')
-                .attr('id',id)
-                .attr('x',x)
-                .attr('y',y)
-                .attr('stroke',s_color)
-                .text(value);
-            graphe.append('line')
-                .attr('x1',x)
-                .attr('y1',y+5)
-                .attr('x2',x-20)
-                .attr('stroke',s_color)
-                .attr('y2',y+20);
-            graphe.append('line')
-                .attr('x1',x)
-                .attr('y1',y+5)
-                .attr('x2',x+50)
-                .attr('stroke',s_color)
-                .attr('y2',y+5);
-        }
-
 
 
         function drawCircle(container,x,y,r,color=null,id=null){
@@ -711,7 +686,6 @@
         }
 
         drawCircle('circle',x1,y1+230,50,'#ccc',id='show_circle');
-        drawGrapheText(x1+70,y1+200,'color_code','#cccccc','#ccc');
 
         function toggle_cirle(){
 
@@ -753,9 +727,8 @@
             el.transition()
                 .duration(500)
                 .attr("transform", 'rotate('+-90+')' );
-
-
         }
+
         function toggle_palet(){
 
             if( palet.attr('data-palet')=='on'){
