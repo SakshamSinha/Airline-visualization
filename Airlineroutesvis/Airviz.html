@@ -1,0 +1,797 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Airline Routes Visualization</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="main"></div>
+<script src="//d3js.org/d3.v4.min.js"></script>
+<script src="lib/echarts/dist/echarts.js"></script>
+<script src="lib/echarts-gl/dist/echarts-gl.js"></script>
+<script src="lib/echarts/map/js/world.js"></script>
+<script src="lib/jquery.min.js"></script>
+<script src="lib/dat.gui.js"></script>
+<script>
+    var chart = echarts.init(document.getElementById('main'));
+    chart.showLoading();
+    var canvas = document.createElement('canvas');
+    var mapChart = echarts.init(canvas, null, {
+        width: 2048,
+        height: 1024
+    });
+
+
+    var svg = d3.select('body').append('svg')
+        .attr('width',320)
+        .attr('height',600);
+
+    var x1 = 160,
+        y1 = 150;
+    var c_color ;
+    var colors = [
+        '#ff4422','#ee1166' ,'#9911bb' ,'#6633bb' ,'#3344bb' ,'#1199ff','#00aaff',
+        '#00bbdd','#009988','#44bb44','#88cc44','#ccdd22','#ffee11','#ffcc00','#ff9900','#ff5500',
+        '#775544','#999999','#828080','#444'];
+    var palet= d3.select('svg');
+
+
+
+    $.getJSON('./data/result.json', function (data) {
+        var airports = data.airports;
+
+        var routesbyairline = {};
+        data.routes.forEach(function (route) {
+            var airline_id = route.airline_id;
+
+            if (!routesbyairline[airline_id]) {
+                routesbyairline[airline_id] = [];
+            }
+            routesbyairline[airline_id].push([route, airports[route.source].coord, airports[route.destination].coord]);
+        });
+
+
+        var pointsData = [];
+
+        jQuery.each(airports, function() {
+            pointsData.push(this.coord);
+        });
+
+        var worldtopo='asset/world.topo.bathy.200401.jpg';
+        var selected_dict={};
+
+        var auto=true;
+
+        mapChart.setOption({
+            backgroundColor: '#fff',
+            visualMap: {
+                show: false,
+                min: 0,
+                max: 500000,
+                inRange: {
+                    color: ['#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
+                }
+            },
+            series : [
+                {
+                    type: 'map',
+                    map: 'world',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    data:[
+                        {name : 'Afghanistan', value : 28397.812},
+                        {name : 'Angola', value : 19549.124},
+                        {name : 'Albania', value : 3150.143},
+                        {name : 'United Arab Emirates', value : 8441.537},
+                        {name : 'Argentina', value : 40374.224},
+                        {name : 'Armenia', value : 2963.496},
+                        {name : 'French Southern and Antarctic Lands', value : 268.065},
+                        {name : 'Australia', value : 22404.488},
+                        {name : 'Austria', value : 8401.924},
+                        {name : 'Azerbaijan', value : 9094.718},
+                        {name : 'Burundi', value : 9232.753},
+                        {name : 'Belgium', value : 10941.288},
+                        {name : 'Benin', value : 9509.798},
+                        {name : 'Burkina Faso', value : 15540.284},
+                        {name : 'Bangladesh', value : 151125.475},
+                        {name : 'Bulgaria', value : 7389.175},
+                        {name : 'The Bahamas', value : 66402.316},
+                        {name : 'Bosnia and Herzegovina', value : 3845.929},
+                        {name : 'Belarus', value : 9491.07},
+                        {name : 'Belize', value : 308.595},
+                        {name : 'Bermuda', value : 64.951},
+                        {name : 'Bolivia', value : 716.939},
+                        {name : 'Brazil', value : 195210.154},
+                        {name : 'Brunei', value : 27.223},
+                        {name : 'Bhutan', value : 716.939},
+                        {name : 'Botswana', value : 1969.341},
+                        {name : 'Central African Republic', value : 4349.921},
+                        {name : 'Canada', value : 34126.24},
+                        {name : 'Switzerland', value : 7830.534},
+                        {name : 'Chile', value : 17150.76},
+                        {name : 'China', value : 1359821.465},
+                        {name : 'Ivory Coast', value : 60508.978},
+                        {name : 'Cameroon', value : 20624.343},
+                        {name : 'Democratic Republic of the Congo', value : 62191.161},
+                        {name : 'Republic of the Congo', value : 3573.024},
+                        {name : 'Colombia', value : 46444.798},
+                        {name : 'Costa Rica', value : 4669.685},
+                        {name : 'Cuba', value : 11281.768},
+                        {name : 'Northern Cyprus', value : 1.468},
+                        {name : 'Cyprus', value : 1103.685},
+                        {name : 'Czech Republic', value : 10553.701},
+                        {name : 'Germany', value : 83017.404},
+                        {name : 'Djibouti', value : 834.036},
+                        {name : 'Denmark', value : 5550.959},
+                        {name : 'Dominican Republic', value : 10016.797},
+                        {name : 'Algeria', value : 37062.82},
+                        {name : 'Ecuador', value : 15001.072},
+                        {name : 'Egypt', value : 78075.705},
+                        {name : 'Eritrea', value : 5741.159},
+                        {name : 'Spain', value : 46182.038},
+                        {name : 'Estonia', value : 1298.533},
+                        {name : 'Ethiopia', value : 87095.281},
+                        {name : 'Finland', value : 5367.693},
+                        {name : 'Fiji', value : 860.559},
+                        {name : 'Falkland Islands', value : 49.581},
+                        {name : 'France', value : 63230.866},
+                        {name : 'Gabon', value : 1556.222},
+                        {name : 'United Kingdom', value : 62066.35},
+                        {name : 'Georgia', value : 4388.674},
+                        {name : 'Ghana', value : 24262.901},
+                        {name : 'Guinea', value : 10876.033},
+                        {name : 'Gambia', value : 1680.64},
+                        {name : 'Guinea Bissau', value : 10876.033},
+                        {name : 'Equatorial Guinea', value : 696.167},
+                        {name : 'Greece', value : 11109.999},
+                        {name : 'Greenland', value : 56.546},
+                        {name : 'Guatemala', value : 14341.576},
+                        {name : 'French Guiana', value : 231.169},
+                        {name : 'Guyana', value : 786.126},
+                        {name : 'Honduras', value : 7621.204},
+                        {name : 'Croatia', value : 4338.027},
+                        {name : 'Haiti', value : 9896.4},
+                        {name : 'Hungary', value : 10014.633},
+                        {name : 'Indonesia', value : 240676.485},
+                        {name : 'India', }, //value : 1205624.648
+                        {name : 'Ireland', value : 4467.561},
+                        {name : 'Iran', value : 240676.485},
+                        {name : 'Iraq', value : 30962.38},
+                        {name : 'Iceland', value : 318.042},
+                        {name : 'Israel', value : 7420.368},
+                        {name : 'Italy', value : 60508.978},
+                        {name : 'Jamaica', value : 2741.485},
+                        {name : 'Jordan', value : 6454.554},
+                        {name : 'Japan', value : 127352.833},
+                        {name : 'Kazakhstan', value : 15921.127},
+                        {name : 'Kenya', value : 40909.194},
+                        {name : 'Kyrgyzstan', value : 5334.223},
+                        {name : 'Cambodia', value : 14364.931},
+                        {name : 'South Korea', value : 51452.352},
+                        {name : 'Kosovo', value : 97.743},
+                        {name : 'Kuwait', value : 2991.58},
+                        {name : 'Laos', value : 6395.713},
+                        {name : 'Lebanon', value : 4341.092},
+                        {name : 'Liberia', value : 3957.99},
+                        {name : 'Libya', value : 6040.612},
+                        {name : 'Sri Lanka', value : 20758.779},
+                        {name : 'Lesotho', value : 2008.921},
+                        {name : 'Lithuania', value : 3068.457},
+                        {name : 'Luxembourg', value : 507.885},
+                        {name : 'Latvia', value : 2090.519},
+                        {name : 'Morocco', value : 31642.36},
+                        {name : 'Moldova', value : 103.619},
+                        {name : 'Madagascar', value : 21079.532},
+                        {name : 'Mexico', value : 117886.404},
+                        {name : 'Macedonia', value : 507.885},
+                        {name : 'Mali', value : 13985.961},
+                        {name : 'Myanmar', value : 51931.231},
+                        {name : 'Montenegro', value : 620.078},
+                        {name : 'Mongolia', value : 2712.738},
+                        {name : 'Mozambique', value : 23967.265},
+                        {name : 'Mauritania', value : 3609.42},
+                        {name : 'Malawi', value : 15013.694},
+                        {name : 'Malaysia', value : 28275.835},
+                        {name : 'Namibia', value : 2178.967},
+                        {name : 'New Caledonia', value : 246.379},
+                        {name : 'Niger', value : 15893.746},
+                        {name : 'Nigeria', value : 159707.78},
+                        {name : 'Nicaragua', value : 5822.209},
+                        {name : 'Netherlands', value : 16615.243},
+                        {name : 'Norway', value : 4891.251},
+                        {name : 'Nepal', value : 26846.016},
+                        {name : 'New Zealand', value : 4368.136},
+                        {name : 'Oman', value : 2802.768},
+                        {name : 'Pakistan', value : 273149.306},
+                        {name : 'Panama', value : 3678.128},
+                        {name : 'Peru', value : 29262.83},
+                        {name : 'Philippines', value : 93444.322},
+                        {name : 'Papua New Guinea', value : 6858.945},
+                        {name : 'Poland', value : 38198.754},
+                        {name : 'Puerto Rico', value : 3709.671},
+                        {name : 'North Korea', value : 1.468},
+                        {name : 'Portugal', value : 10589.792},
+                        {name : 'Paraguay', value : 6459.721},
+                        {name : 'Qatar', value : 1749.713},
+                        {name : 'Romania', value : 21861.476},
+                        {name : 'Russia', value : 21861.476},
+                        {name : 'Rwanda', value : 10836.732},
+                        {name : 'Western Sahara', value : 514.648},
+                        {name : 'Saudi Arabia', value : 27258.387},
+                        {name : 'Sudan', value : 35652.002},
+                        {name : 'South Sudan', value : 9940.929},
+                        {name : 'Senegal', value : 12950.564},
+                        {name : 'Solomon Islands', value : 526.447},
+                        {name : 'Sierra Leone', value : 5751.976},
+                        {name : 'El Salvador', value : 6218.195},
+                        {name : 'Somaliland', value : 9636.173},
+                        {name : 'Somalia', value : 9636.173},
+                        {name : 'Republic of Serbia', value : 3573.024},
+                        {name : 'Suriname', value : 524.96},
+                        {name : 'Slovakia', value : 5433.437},
+                        {name : 'Slovenia', value : 2054.232},
+                        {name : 'Sweden', value : 9382.297},
+                        {name : 'Swaziland', value : 1193.148},
+                        {name : 'Syria', value : 7830.534},
+                        {name : 'Chad', value : 11720.781},
+                        {name : 'Togo', value : 6306.014},
+                        {name : 'Thailand', value : 66402.316},
+                        {name : 'Tajikistan', value : 7627.326},
+                        {name : 'Turkmenistan', value : 5041.995},
+                        {name : 'East Timor', value : 10016.797},
+                        {name : 'Trinidad and Tobago', value : 1328.095},
+                        {name : 'Tunisia', value : 10631.83},
+                        {name : 'Turkey', value : 72137.546},
+                        {name : 'United Republic of Tanzania', value : 44973.33},
+                        {name : 'Uganda', value : 33987.213},
+                        {name : 'Ukraine', value : 46050.22},
+                        {name : 'Uruguay', value : 3371.982},
+                        {name : 'United States of America', value : 312247.116},
+                        {name : 'Uzbekistan', value : 27769.27},
+                        {name : 'Venezuela', value : 236.299},
+                        {name : 'Vietnam', value : 89047.397},
+                        {name : 'Vanuatu', value : 236.299},
+                        {name : 'West Bank', value : 13.565},
+                        {name : 'Yemen', value : 22763.008},
+                        {name : 'South Africa', value : 51452.352},
+                        {name : 'Zambia', value : 13216.985},
+                        {name : 'Zimbabwe', value : 13076.978}
+                    ]
+                }
+            ]
+        });
+
+        var series = Object.keys(data.airlines).map(function(key, index) {
+            var routes = routesbyairline[data.airlines[key].id];
+            selected_dict[data.airlines[key].name]=true;
+            if (!routes){
+                return null;
+            }
+            return {
+                type: 'lines3D',
+                name: data.airlines[key].name,
+
+                effect: {
+                    show: true,
+                    trailWidth: 2,
+                    trailLength: 0.2,
+                    trailOpacity: 0.4,
+                    trailColor: 'rgb(30, 30, 60)'
+                },
+
+                lineStyle: {
+                    width: 1,
+                    // color: 'rgb('+100+', '+120+', 150)',
+                    color: 'rgb(80, 50, 150)',
+                    // color: 'rgb(118, 233, 241)',
+                    opacity: 0.1
+                },
+                blendMode: 'lighter',
+
+                distanceToGlobe: 4,
+
+                data:routes.map(function (route) {
+                    return [route[1], route[2]];
+                })
+            };
+        }, {}).filter(function (series) {
+                return !!series;
+            });
+
+        series.push({
+            type: 'scatter3D',
+            coordinateSystem: 'globe',
+            blendMode: 'lighter',
+            symbolSize: 2,
+            distanceToGlobe: 4,
+            itemStyle: {
+                color: 'rgb(50, 50, 150)',
+                opacity: 0.2
+            },
+            data: pointsData
+        });
+
+    var option= {
+        legend: {
+            name: 'airlines',
+            selectedMode: 'multiple',
+            selected: selected_dict,
+            left: 'left',
+            data: series.map(function(airline){
+                return airline.name;
+            }),
+            orient: 'vertical',
+            textStyle: {
+                color: '#fff'
+            },
+            type: 'scroll',
+            pageTextStyle: {
+                color: '#fff'
+            }
+        },
+        globe: {
+
+            baseTexture: worldtopo,
+            
+            heightTexture: 'asset/elev_bump_4k.jpg',
+
+            displacementScale: 0.1,
+
+            shading: 'realistic',
+            realisticMaterial: {
+                roughness: 0.8,
+                metalness: 0
+            },
+            viewControl: {
+                autoRotate: auto
+            },
+
+            postEffect: {
+                enable: true,
+            },
+            temporalSuperSampling: {
+                enable: true
+            },
+            light: {
+                ambient: {
+                    intensity: 1
+                },
+                main: {
+                    intensity: 7,
+                    shadow: false,
+                },
+            }
+        },
+        tooltip: {
+          show: false
+        },
+        series: series
+    };
+    chart.setOption(option);
+    window.addEventListener('resize', function () {
+        chart.resize();
+    });
+
+
+    var config = {
+        exposure: 0,
+        brightness: 0,
+        contrast: 1,
+        saturation: 1
+    };
+    var gui = new dat.GUI();
+
+    function update() {
+        chart.setOption({
+            globe: {
+                postEffect: {
+                    colorCorrection: {
+                        brightness: config.brightness,
+                        exposure: config.exposure,
+                        contrast: config.contrast,
+                        saturation: config.saturation
+                    }
+                }
+            }
+        })
+    }
+
+    gui.add(config, 'exposure', -2, 2).step(0.01).onChange(update);
+    gui.add(config, 'brightness', -1, 1).step(0.01).onChange(update);
+    gui.add(config, 'contrast', -2, 2).step(0.01).onChange(update);
+    gui.add(config, 'saturation', -10, 10).step(0.01).onChange(update);
+
+    chart.hideLoading();
+
+    (function () {
+        var btn = document.createElement('button');
+        btn.innerHTML = 'Un-Check All';
+        btn.style.cssText = `
+            position:absolute;
+            left: 130px;
+            top: 10px;
+            background: rgb(42, 64, 173);
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            z-index: 1000000;
+            cursor: pointer;`;
+
+        btn.onclick = function () {
+            Object.keys(selected_dict).map(function(key, index){
+                selected_dict[key]=false;
+            });
+            chart.setOption(option,true);
+            console.log("clicked uncheck")
+        };
+
+        var btn_reset = document.createElement('button');
+        btn_reset.innerHTML = 'Reset';
+        btn_reset.style.cssText = `
+            position:absolute;
+            left: 230px;
+            top: 10px;
+            background: rgb(42, 64, 173);
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            z-index: 1000000;;
+            cursor: pointer;`;
+
+        btn_reset.onclick = function () {
+            Object.keys(selected_dict).map(function(key, index){
+                selected_dict[key]=true;
+            });
+            series.forEach(function (data){
+                data.lineStyle = {
+                    width: 1,
+                    // color: 'rgb('+100+', '+120+', 150)',
+                    color: 'rgb(80, 50, 150)',
+                    // color: 'rgb(118, 233, 241)',
+                    opacity: 0.1
+                }
+            });
+            chart.setOption(option,true);
+            console.log("clicked reset");
+        };
+
+        var btn_auto = document.createElement('button');
+        btn_auto.innerHTML = 'Auto Rotate On/Off';
+        btn_auto.style.cssText = `
+            position:absolute;
+            left: 287px;
+            top: 10px;
+            background: rgb(42, 64, 173);
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            z-index: 1000000;;
+            cursor: pointer;`;
+
+        btn_auto.onclick = function () {
+            if (auto === true){
+                auto = false;
+            }
+            else {
+                auto = true;
+            }
+            chart.setOption({
+                globe: {
+                    viewControl: {
+                        autoRotate: auto
+                    }
+                }
+            });
+            console.log("clicked auto");
+        };
+
+        var btn_country = document.createElement('button');
+        btn_country.innerHTML = 'Country View';
+        btn_country.style.cssText = `
+            position:absolute;
+            left: 423px;
+            top: 10px;
+            background: rgb(42, 64, 173);
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            z-index: 1000000;;
+            cursor: pointer;`;
+
+        btn_country.onclick = function () {
+            if (worldtopo === mapChart){
+                worldtopo = 'asset/world.topo.bathy.200401.jpg';
+            }
+            else {
+                worldtopo = mapChart;
+            }
+            chart.setOption({
+                globe: {
+                    baseTexture: worldtopo,
+                    light: {
+                        ambient: {
+                            intensity: 1
+                        },
+                        main: {
+                            intensity: 3,
+                            shadow: false,
+                        },
+                    }
+                }
+            });
+            console.log("clicked auto");
+        };
+
+        document.body.appendChild(btn);
+        document.body.appendChild(btn_reset);
+        document.body.appendChild(btn_auto);
+        document.body.appendChild(btn_country);
+    })();
+        function deg_color(color){
+
+            return d_color = [
+                d3.hsl(color).darker(0.5),
+                d3.hsl(color).darker(0.3),
+                color,
+                d3.hsl(color).brighter(0.5),
+                d3.hsl(color).brighter(1)
+            ]
+
+        }
+        function draw_palet(){
+
+
+            var palet_container = d3.select('svg').append('g').attr('id','palet_container');
+
+            for(var i= 0; i<colors.length;i++){
+
+                palet_container.append('g')
+                    .attr('id','graphe_container'+i)
+                    .attr('data-color',colors[i])
+                    .attr('class','graphe_container');
+
+
+                drawRect('#graphe_container'+i,x1,y1,5,5,145,20,'#fff','#ccc');
+                drawRect('#graphe_container'+i,x1+25,y1,4,4,20,20,deg_color(colors[i])[0],'','','color_rect color_rect0');
+                drawRect('#graphe_container'+i,x1+50,y1,4,4,20,20,deg_color(colors[i])[1],'','','color_rect color_rect1');
+                drawRect('#graphe_container'+i,x1+75,y1,4,4,20,20,deg_color(colors[i])[2],'','','color_rect color_rect2');
+                drawRect('#graphe_container'+i,x1+100,y1,4,4,20,20,deg_color(colors[i])[3],'','','color_rect color_rect3');
+                drawRect('#graphe_container'+i,x1+125,y1,4,4,20,20,deg_color(colors[i])[4],'','','color_rect color_rect4');
+
+
+            }
+            drawButton();
+            d3.selectAll('.color_rect').on('mouseover',mouseover);
+            d3.selectAll('.color_rect').on('click',mouseClick);
+        }
+
+        function mouseover(){
+            var el = d3.select(this);
+            var s_color = el.attr('fill');
+
+            setColor('#show_circle',s_color );
+            d3.select('#color_code').text(s_color).attr('fill',s_color).attr('stroke',s_color);
+        }
+        function mouseClick(){
+
+            p_color =d3.select(this.parentNode).attr('data-color');
+            d3.select('#button_show_color').attr('fill',p_color);
+
+            c_color= d3.select(this).attr('fill');
+            choosed_palet.addColor(c_color);
+            series.forEach(function (data){
+                data.lineStyle = {
+                    width: 1,
+                    // color: 'rgb('+100+', '+120+', 150)',
+                    color: c_color,
+                    // color: 'rgb(118, 233, 241)',
+                    opacity: 0.1
+                }
+            });
+            chart.setOption({
+                series: series,
+            });
+        }
+
+
+        function setColor(el,color){
+
+            d3.select(el).transition().duration('200').attr('fill',color);
+        }
+
+
+        function drawCircle(container,x,y,r,color=null,id=null){
+
+
+            var ele = d3.select('svg').append('g');
+
+            ele.append('circle')
+                .attr('fill',color)
+                .attr('id',id)
+                .attr('cx',x)
+                .attr('cy',y)
+                .attr('stroke','#ccc')
+                .attr('r',r);
+        };
+
+        function drawRect(container,x,y,rx,ry,width,height,color=null,stroke=null,id=null,classed=null){
+            var ele;
+            if(container == 'rect'){
+                ele = d3.select('svg').append('g');
+            }else{
+                ele = d3.select('svg').select(container);
+            }
+            ele.append('rect')
+                .attr('id',id)
+                .attr('class',classed)
+                .attr('fill',color)
+                .attr('stroke',stroke)
+                .attr('x',x)
+                .attr('y',y)
+                .attr('rx',rx)
+                .attr('ry',ry)
+                .attr('width',width)
+                .attr('height',height);
+        }
+        function drawButton(){
+
+
+            drawCircle('svg',x1,y1+10,15,colors[colors.length-1],id="button_show_color");
+            drawCircle('svg',x1,y1+10,10,'orange');
+            drawCircle('svg',x1,y1+10,9,'white',id="button");
+            d3.select('#button').on('click',buttonClicked);
+        }
+
+        function buttonClicked(){
+            // toggle_color('#button');
+            toggle_palet();
+            toggle_cirle();
+            toggle_text_graphe();
+            show_choosed_bar();
+        };
+
+        function show_choosed_bar(){
+            var last_g= colors.length-1;
+            var last_color = colors[colors.length-1];
+            var p_color = d3.select('#button_show_color').attr('fill');
+
+            if( palet.attr('data-palet')=='on'){
+                d3.selectAll('#graphe_container'+last_g).attr('data-color',last_color);
+                for(var i = 0; i < 5;i++){
+
+                    d3.selectAll('#graphe_container'+last_g+'>.color_rect'+i).attr('fill',deg_color(last_color)[i]);
+
+                }
+            }else{
+                d3.selectAll('#graphe_container'+last_g).attr('data-color',deg_color(p_color)[2]);
+                for(var i = 0; i < 5;i++){
+                    d3.selectAll('#graphe_container'+last_g+'>.color_rect'+i).attr('fill',deg_color(p_color)[i]);
+                }
+            }
+
+
+        }
+
+        function toggle_color(el){
+            var element = d3.select(el);
+            var color = d3.select(el).attr('fill');
+            if(color == 'white'){
+                element.attr('fill','orange');
+            }else{
+                element.attr('fill','white');
+            }
+        }
+
+        drawCircle('circle',x1,y1+230,50,'#ccc',id='show_circle');
+
+        function toggle_cirle(){
+
+            var palet= d3.select('svg'),
+                circle = d3.select('#show_circle');
+
+            if( palet.attr('data-palet')=='on'){
+                circle.transition().duration(500).attr('r',50).attr("transform", "translate(0,0)");;
+            }else{
+                circle.transition().duration(500).attr('r',100).attr("transform", "translate(0," + -75 + ")");
+            }
+        }
+        function toggle_text_graphe(){
+
+            var palet= d3.select('svg'),
+                text_graphe = d3.select('#text_graphe');
+
+            if( palet.attr('data-palet')=='on'){
+                text_graphe.transition().duration(500).attr("transform", "translate(0,0)");
+            }else{
+                text_graphe.transition().duration(500).attr("transform", "translate(0," + -150 + ")");
+            }
+        }
+        function open_palet(){
+            var step= 18;
+            d3.select('svg').attr('data-palet','on');
+
+            for(var i = 0; i <colors.length ;i++){
+                d3.select('#graphe_container'+i)
+                    .transition()
+                    .duration(500).attr("transform", 'rotate('+i*step+' )');
+            }
+
+        }
+        function close_palet(){
+
+            var el =d3.selectAll('.graphe_container');
+
+            el.transition()
+                .duration(500)
+                .attr("transform", 'rotate('+-90+')' );
+        }
+
+        function toggle_palet(){
+
+            if( palet.attr('data-palet')=='on'){
+                close_palet();
+
+                palet.attr('data-palet','off');
+            }else{
+                open_palet();
+                palet.attr('data-palet','on');
+            }
+        }
+
+        draw_palet();
+        open_palet();
+
+        var choosed_palet = {
+            container:d3.select('svg').append('g').attr('class','choosed_palet'),
+            x:50,
+            y:450,
+            width:30,
+            height:10,
+            max_length:7,
+            color :[],
+
+            addColor:function(color){
+                if(this.color.length<this.max_length){
+                    this.color.push(color);
+                    this.draw();
+                }
+
+            },
+            removeColor:function(index){
+
+
+                this.color.splice(index,1);
+
+                this.draw();
+            },
+            draw:function(){
+                this.container.html('');
+                for(var i = 0; i <this.color.length;i++){
+
+                    this.container.append('rect').attr('x',this.x+(i*this.width))
+                        .attr('y',this.y)
+                        .attr('data_color_index',i)
+                        .attr('width',this.width)
+                        .attr('height',this.height)
+                        .attr('fill',this.color[i])
+                        .on('mouseover',mouseover)
+                        .on('dblclick',function(){
+                            var el=  d3.select(this);
+                            var index = el.attr("data_color_index");
+                            choosed_palet.removeColor(index);
+                            el.remove();
+                        });
+                }
+            }
+
+        }
+    })
+
+</script>
+</body>
+</html>
